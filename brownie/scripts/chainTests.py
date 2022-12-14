@@ -125,19 +125,25 @@ def test_benchProof(lcl,circuit,iterations=100, proof_options="", abort=False, f
     except:
         pass
 
-    proofs = task["result"]["Ok"]
+    if not error and task_completed:
+        proofs = task["result"]["Ok"]
 
-    metrics = {
-                "Block":block,
-                "Duration": {
-                            "Aggregation" :proofs['aggregation']['duration'],  
-                            "Circuit"     :proofs['circuit']['duration']
-                },
-                "Config": proofs['config']
-            }
+        metrics = {
+                    "Block":block,
+                    "k" : {
+                            "Aggregation":proofs['aggregation']['k'],
+                            "Circuit" :  proofs['circuit']['k']
+                    },
+                    "Duration": {
+                                "Aggregation" :proofs['aggregation']['duration'],
+                                "Circuit"     :proofs['circuit']['duration']
+                    },
+                    "Config": proofs['config']
+                }
 
     pprint(metrics)
     return metrics
+
 
 
 

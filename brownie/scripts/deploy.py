@@ -1,4 +1,4 @@
-from brownie import CheckSdiv,CheckMload
+from brownie import CheckSdiv,CheckMload, CheckKeccak
 from brownie.network import accounts
 from web3 import Web3
 from pathlib import Path
@@ -20,3 +20,4 @@ def main():
   
     checksdiv = CheckSdiv.deploy({"from": owner})
     checkmload = CheckMload.deploy({"from": owner})
+    checksha3 = CheckKeccak.deploy({"from": owner})
