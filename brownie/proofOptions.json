@@ -1,0 +1,7 @@
+{
+    "retry"          :  false,
+    "circuit"        :  "pi",
+    "mock"           :  false,
+    "aggregate"      :  false,
+    "mock_feedback"  :  false
+}
