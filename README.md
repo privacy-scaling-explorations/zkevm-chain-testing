@@ -1,5 +1,3 @@
-# zkevm-chain-testing
-
 # zkEVM Chain - TestAutomation tools
 
 ## Project Setup
