@@ -1,4 +1,4 @@
-from brownie import CheckSdiv, CheckMload
+from brownie import CheckSdiv, CheckMload, CheckKeccak
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 # from commonUtils import loadJson, getProjectDir
@@ -18,7 +18,10 @@ def sendTx(numOfiterations,contractInstance,owner):
     '''
     txNotSent = True
     try:
-        tx = contractInstance.checkBatchYul(((numOfiterations),),{"from": owner})
+        try:
+            tx = contractInstance.checkBatchYul(((numOfiterations),),{"from": owner})
+        except:
+            tx = contractInstance.checkBatchYul(numOfiterations,{"from": owner})
         txNotSent = False
     except ValueError as _err:
         tx = None
@@ -65,7 +68,8 @@ def getScName(circuit):
     '''
     worstCaseOPs = {
         "EVM"  : ("CheckSdiv","SDIV"),
-        "STATE": ("CheckMload", "MLOAD")
+        "STATE": ("CheckMload", "MLOAD"),
+        "KECCAK" : ("CheckKeccak", "SHA3")
     }
 
     return worstCaseOPs[circuit]
