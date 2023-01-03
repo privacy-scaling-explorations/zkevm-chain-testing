@@ -1,6 +1,6 @@
 {
     "testEnvironment": "username",
-    "parentDir": "taframework",
+    "parentDir": "zkevm-chain-testing",
     "resultsdir": "testresults",
     "keystoredir" : "keystore",
     "deployments": "build/deployments/",
