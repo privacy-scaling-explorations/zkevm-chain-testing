@@ -19,9 +19,9 @@ def sendTx(numOfiterations,contractInstance,owner):
     txNotSent = True
     try:
         try:
-            tx = contractInstance.checkBatchYul(((numOfiterations),),{"from": owner})
-        except:
             tx = contractInstance.checkBatchYul(numOfiterations,{"from": owner})
+        except TypeError:
+            tx = contractInstance.checkBatchYul((numOfiterations,),{"from": owner})
         txNotSent = False
     except ValueError as _err:
         tx = None
