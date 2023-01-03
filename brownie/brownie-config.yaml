@@ -1,0 +1,6 @@
+compiler:
+    solc:
+        version: null
+        optimizer:
+            enabled: false
+            runs: 200
