@@ -53,11 +53,24 @@ run_brownie_test () {
     brownie run scripts/client.py --network ${NETWORK_ID}_BASE
 }
 
+precompiles () {
+    cd ~
+    git clone https://github.com/privacy-scaling-explorations/zkevm-chain.git
+    cp ~/zkevm-chain-testing/brownie/compile_contracts.sh ~/zkevm-chain/scripts/compile_contracts.sh
+    cd ~/zkevm-chain
+    ./scripts/compile_contracts.sh
+    mkdir -p ~/zkevm-chain-testing/brownie/precompiles
+    cp ./build/contracts/ZkEvmL1Bridge.abi ~/zkevm-chain-testing/brownie/precompiles/
+    rm -rf ~/zkevm-chain 
+}
+
+
 main() {
     if [ ! -f $BROWNIE ]; then
         install_pkgs
         install_brownie
         add_network
+        precompiles
         # run_brownie
         #run_brownie_test
     else
