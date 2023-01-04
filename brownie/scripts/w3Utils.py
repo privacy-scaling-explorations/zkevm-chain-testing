@@ -1,6 +1,8 @@
-from brownie import CheckSdiv, CheckMload, CheckKeccak
-from web3 import Web3
+from brownie import Contract, CheckSdiv, CheckMload, CheckKeccak
+from brownie.network import accounts
 from web3.middleware import geth_poa_middleware
+import json
+
 # from commonUtils import loadJson, getProjectDir
 
 
@@ -9,6 +11,28 @@ from web3.middleware import geth_poa_middleware
 #     creates and returns an instance of the selecred (deployed) contract. 
 #     '''
 #     scaddr = sc.
+
+def loadAccount(keyfile,password):
+    accounts.load(keyfile,password)
+    return accounts
+
+def loadPreCompiledContract(contract_address, abi, name):
+    try:
+        scontractabi = json.load(open(abi))
+        scontract    = Contract.from_abi(name ,contract_address,scontractabi)
+    except Exception as e:
+        print(e)
+    return scontract
+
+def dispatchMessage():
+    pass
+
+def getBalances(_accounts):
+    balances = {}
+    for _account in _accounts:
+        balances[_account.address] = _account.balance()
+        
+    return balances
 
 
 def sendTx(numOfiterations,contractInstance,owner):

@@ -1,4 +1,5 @@
 {
+    "precompilesFolder": "precompiles",
     "testEnvironment": "username",
     "parentDir": "zkevm-chain-testing",
     "resultsdir": "testresults",
@@ -6,9 +7,11 @@
     "deployments": "build/deployments/",
     "keystorepass" : "password",
     "rpcUrls" : {
-        "username_BASE" : "http://ip-address/rpc/",
-        "L1BRIDGEADDR" : "936a70c0b28532aa22240dce21f89a8399d6ac60",
-        "L2BRIDGEADDR" : "0000000000000000000000000000000000020000"
-    }
-
+        "username_BASE" : "http://ip-address/rpc/" 
+        },
+    "L1BRIDGE" : {
+          "address":"936a70c0b28532aa22240dce21f89a8399d6ac60",
+          "abi": "ZkEvmL1Bridge.abi"
+        },
+    "L2BRIDGEADDR" : "0000000000000000000000000000000000020000"
 }
