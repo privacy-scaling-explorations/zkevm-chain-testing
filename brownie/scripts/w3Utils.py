@@ -1,5 +1,6 @@
 from brownie import Contract, CheckSdiv, CheckMload, CheckKeccak
 from brownie.network import accounts
+from web3 import Web3
 from web3.middleware import geth_poa_middleware
 import json
 
