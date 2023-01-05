@@ -3,6 +3,7 @@ from scripts.prover import proof_request, queryProverTasks, flushTasks,proof_opt
 from scripts.w3Utils import sendTx, loadContract, setupW3Provider, getScName, getBlockNumber, dispatchMessage, loadAccount, loadPreCompiledContract, getBalances
 from scripts.circuitUtils import calcTxCosts
 from pprint import pprint
+from random import randrange
 # import scripts.commonUtils as cu
 import sys
 
@@ -239,3 +240,27 @@ def get_Balances(lcl):
     balances = getBalances(accounts)
     pprint(balances)
     return balances
+
+def crossChainTx(lcl,layer):
+    try:
+        kfdir   = lcl["keyfilesDir"]
+        kfiles = lcl["keyfiles"] 
+        b_address = lcl["env"][f"L{layer}BRIDGE"]["address"]
+        b_abi = lcl["env"][f"L{layer}BRIDGE"]["abi"]
+        precomp_folder = lcl["env"]["precompilesFolder"]
+        for kfile in kfiles:
+            kf = f'{kfdir}/{kfile}'
+            accounts = loadAccount(kf,"password")
+        precompDir = lcl["projectDir"].joinpath(f'brownie/{precomp_folder}')
+        bridge = loadPreCompiledContract(b_address,f"{precompDir}/{b_abi}", "bridge")
+        acc=accounts[randrange(len(accounts))]
+        addr = acc.address
+    except Exception as e:
+        print(e)
+    try:
+        tx=bridge.dispatchMessage(addr, 0, "0xffffffffffffffff", acc.nonce, "0x",{'from': acc, 'value': 999999})
+        txNotSent=False
+    except Exception as e:
+        print(e)
+        txNotSent=True
+    return tx, txNotSent
