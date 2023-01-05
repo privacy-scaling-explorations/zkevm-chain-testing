@@ -1,6 +1,6 @@
 from scripts.coordinator import fetch_coordinator_config
 from scripts.prover import proof_request, queryProverTasks, flushTasks,proof_options
-from scripts.w3Utils import sendTx, loadContract, setupW3Provider, getScName, getBlockNumber
+from scripts.w3Utils import sendTx, loadContract, setupW3Provider, getScName, getBlockNumber, dispatchMessage, loadAccount, loadPreCompiledContract, getBalances
 from scripts.circuitUtils import calcTxCosts
 from pprint import pprint
 # import scripts.commonUtils as cu
@@ -208,3 +208,34 @@ def current_block(lcl, layer):
     block = getBlockNumber(w3)
     print(f"Current Block: {block}")
     return block
+
+
+def sendEthToL2(lcl,layer):
+    kfdir   = lcl["keyfilesDir"]
+    kfiles = lcl["keyfiles"] 
+    b_address = lcl["env"][f"L{layer}BRIDGE"]["address"]
+    b_abi = lcl["env"][f"L{layer}BRIDGE"]["abi"]
+    precomp_folder = lcl["env"]["precompilesFolder"]
+    for kfile in kfiles:
+        kf = f'{kfdir}/{kfile}'
+        accounts = loadAccount(kf,"password")
+    precompDir = lcl["projectDir"].joinpath(f'brownie/{precomp_folder}')
+    bridge = loadPreCompiledContract(b_address,f"{precompDir}/{b_abi}", "bridge")
+    blocks=[]
+    for acc in accounts:
+        addr = acc.address
+        tx=bridge.dispatchMessage(addr, 0, "0xffffffffffffffff", acc.nonce, "0x",{'from': acc, 'value': 999999999999999999999999999})
+        blocks.append(tx.block_number)
+
+    return blocks
+
+        
+def get_Balances(lcl):
+    kfdir   = lcl["keyfilesDir"]
+    kfiles = lcl["keyfiles"] 
+    for kfile in kfiles:
+        kf = f'{kfdir}/{kfile}'
+        accounts = loadAccount(kf,"password")
+    balances = getBalances(accounts)
+    pprint(balances)
+    return balances
