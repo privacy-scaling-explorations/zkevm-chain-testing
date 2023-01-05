@@ -159,3 +159,82 @@ def test_calculateBlockCircuitCosts(lcl, blocknumber, dumpTxTrace=False, layer=2
     bl = getBlockInfo(w3,blocknumber)
     txHases = [i['hash'] for i in bl.transactions]
         
+def test_proveSingleCrossChainTx(lcl, proof_options="", abort=False, flush=False, retry=False, layer=2):
+    '''
+    Create a single crosschain transaction invoking the dispatchMessage method of ZkevmL1Bridge contract and 
+    initiate a proof generation task for submitted block.
+    Currently Works only on eth withdraws (layer=2)
+    '''
+    try:
+        testenv=lcl['env']['testEnvironment']
+        url = lcl['env']["rpcUrls"][f'{testenv}'"_BASE"]+f"l{layer}"
+        txNotSent = True
+        retry = str(retry).lower()
+        proverUrl = lcl['env']["rpcUrls"][f'{testenv}'"_BASE"]+"prover"
+        sourceUrl = lcl['SOURCE_URL']
+    except Exception as e:
+        print(e)
+
+    if flush:
+        print("Flushing Tasks")
+        flushTasks(proverUrl,True,True,True,1)
+
+    isIdle,isBusy,tasks = request_prover_tasks(lcl)
+    print('Waiting active and queued tasks to finish')
+    while not isIdle:
+        sleep(60)
+        isIdle,isBusy,tasks = request_prover_tasks(lcl)
+
+    while txNotSent:
+        print(f"Submitting transaction with dispatchMessage on ZkevmL1Bridge")
+        try:
+            tx, txNotSent=crossChainTx(lcl,layer)
+        except Exception as e:
+            print(e) 
+    block = tx.block_number
+
+    print(f'Sending proof request for block {block}')
+    error = False
+    task_completed = False
+    try:
+        request_proof(lcl,block,proof_options)
+    except Exception as e:
+        print(e)
+    print(f'Submitted proof request for block {block}')
+    while not error and not task_completed:
+        task = request_prover_tasks(lcl,block)
+        task = task[-1]
+
+        task_completed = bool(task['result'])
+        if task_completed:
+            try:
+                error = 'Err' in task['result'].keys()
+            except:
+                pass
+        if error:
+            error_message = task['result']['Err']
+        if not task_completed:
+            sleep(60)
+    try:
+        print(f'Error: {error_message}')
+    except:
+        pass
+
+    if not error and task_completed:
+        proofs = task["result"]["Ok"]
+
+        metrics = {
+                    "Block":block,
+                    "k" : {
+                            "Aggregation":proofs['aggregation']['k'],
+                            "Circuit" :  proofs['circuit']['k']
+                    },
+                    "Duration": {
+                                "Aggregation" :proofs['aggregation']['duration'],
+                                "Circuit"     :proofs['circuit']['duration']
+                    },
+                    "Config": proofs['config']
+                }
+
+    pprint(metrics)
+    return metrics
