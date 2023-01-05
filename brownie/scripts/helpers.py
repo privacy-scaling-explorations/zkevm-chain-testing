@@ -3,7 +3,7 @@ import sys
 from inspect import signature,getmembers, isfunction, ismodule
 from time import sleep
 from scripts.circuitUtils import opCodes
-from scripts.chainTests import test_calibrateOpCode, test_benchProof, test_calculateBlockCircuitCosts
+from scripts.chainTests import test_calibrateOpCode, test_benchProof, test_calculateBlockCircuitCosts, test_proveSingleCrossChainTx
 from scripts.tools import request_proof, flush_prover, request_prover_tasks, get_config, set_config, current_block, sendEthToL2, get_Balances, crossChainTx
 from scripts import chainTests, circuitUtils, rpcUtils, debugUtils, prover
 from types import ModuleType
