@@ -24,8 +24,11 @@ def getTxTraceFromTxObject(resultsDir,tx, dump=False):
     return tr
 
 def getBlockInfo(httpProvider,blocknumber):
-    block = httpProvider.eth.getBlock(blocknumber,True)
-    
+    try:
+        block = httpProvider.eth.getBlock(blocknumber,True)
+    except Exception as e:
+        print(e)
+
     return block
 
 def getTxTraceByHash(chainObj,hash, dump=False):
@@ -33,9 +36,18 @@ def getTxTraceByHash(chainObj,hash, dump=False):
     Returns transaction trace, if only the hash is known/available.
     Optional: set dump to True >> writes the trace to disk (in .json)
     '''
-    txObj = chainObj.get_transaction(hash)
-    txTrace = txObj.trace
-
+    try:
+        txObj = chainObj.get_transaction(hash)
+        traceDone = False
+        while not traceDone:
+            try:
+                txTrace = txObj.trace
+                traceDone = True
+            except Exception as e:
+                print(e)
+    except Exception as e:
+        print(e)
+    
     return txTrace
 
 

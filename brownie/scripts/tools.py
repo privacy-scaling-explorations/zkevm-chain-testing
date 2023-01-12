@@ -2,11 +2,39 @@ from scripts.coordinator import fetch_coordinator_config
 from scripts.prover import proof_request, queryProverTasks, flushTasks,proof_options
 from scripts.w3Utils import sendTx, loadContract, setupW3Provider, getScName, getBlockNumber, dispatchMessage, loadAccount, loadPreCompiledContract, getBalances
 from scripts.circuitUtils import calcTxCosts
+from scripts.debugUtils import getBlockInfo, getTxTraceByHash
+from brownie import chain
+from web3 import Web3
+import json
 from pprint import pprint
 from random import randrange
 # import scripts.commonUtils as cu
 import sys
 
+def tracesByBlock(lcl, testenv, blocknumber, layer, dump=False):
+    try:
+        env = lcl["env"]
+        url = env["rpcUrls"][f'{testenv}'"_BASE"]+f"l{layer}"
+        w3, cid = setupW3Provider(url,testenv,layer)
+    except Exception as e:
+        print(e)
+    try:
+        blockObj =  getBlockInfo(w3,int(blocknumber))
+    except Exception as e:
+        print(e)
+    transactions = blockObj.transactions
+    for tx in transactions:
+        txHash = tx['hash'].hex()
+        print(txHash)
+        txTrace = getTxTraceByHash(chain,txHash,False)
+        try:
+            if dump:
+                filename = f'Block_{blocknumber}-Tx_{txHash}.txtrace'
+                with open(filename,'w') as writeme:
+                    json.dump(txTrace,writeme,indent=4)
+        except Exception as e:
+            print(e)
+            
 def request_proof(lcl,block,proofoptions=""):
     '''
     Standalone Utility to start a proving task for a given block,
