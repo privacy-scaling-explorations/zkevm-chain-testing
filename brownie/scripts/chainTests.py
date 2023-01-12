@@ -1,8 +1,8 @@
 from scripts.w3Utils import setupW3Provider, loadContract, getScName, sendTx
-from scripts.debugUtils import getTxTraceByBlock, getTxTraceByHash, getTxTraceFromTxObject, getBlockInfo
+from scripts.debugUtils import getTxTraceByHash, getTxTraceFromTxObject, getBlockInfo
 from scripts.prover import proof_request, queryProverTasks, flushTasks
 from scripts.circuitUtils import opCodes, calcTxCosts
-from scripts.tools import request_proof, request_prover_tasks
+from scripts.tools import request_proof, request_prover_tasks,crossChainTx
 from time import sleep
 
 from pprint import pprint
