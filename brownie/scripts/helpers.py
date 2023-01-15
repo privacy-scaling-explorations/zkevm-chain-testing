@@ -13,12 +13,12 @@ from pprint import pprint
 
 def get_help(methodName):
     '''
-    To display a list with available tests, type: <brownie run scripts/globals.py main showTests 
+    To display a list with available tests, type: <brownie run scripts/globals.py main showTests
     --network {network-name, for example zkevmchain}>
 
-    For a list of available tools/utilities, type <brownie run scripts/globals.py main showTools 
+    For a list of available tools/utilities, type <brownie run scripts/globals.py main showTools
     --network {network-name, for example zkevmchain}>
-    
+
     '''
 
     if methodName != '':
@@ -29,7 +29,7 @@ def getMembers(largs):
     root_module = lcl['scripts']
     modules = getmembers(root_module)
     return modules
-    
+
 def showMethods(largs):
     '''
     Displays all Available Methods
@@ -71,11 +71,11 @@ def getFuncInstance(userInput):
     '''
     Returns a function instance using user input as function name. function is selected
     from globals dict as globals()[sys.argv[<index>]]
-    Return 1. 
+    Return 1.
         the function instance if object exists, None if it does not exist.
-        Will print the function docstring if it exists but function call failed (due 
+        Will print the function docstring if it exists but function call failed (due
         to incorrect args etc)
-    Return 2. 
+    Return 2.
         the number of required function inputs
     '''
 
@@ -98,7 +98,7 @@ def getFuncInstance(userInput):
         numOfInputs = None
         print(f"function does not exist!\nSelect a proper function according to below list:\n{c}")
         # sys.exit(1)
-        
+
     return funcInstance, numOfInputs
 
 # from helpers import as:

@@ -3,6 +3,9 @@ from scripts.prover import proof_request, queryProverTasks, flushTasks,proof_opt
 from scripts.w3Utils import sendTx, loadContract, setupW3Provider, getScName, getBlockNumber, dispatchMessage, loadAccount, loadPreCompiledContract, getBalances
 from scripts.circuitUtils import calcTxCosts
 from scripts.debugUtils import getBlockInfo, getTxTraceByHash
+from brownie import chain
+from web3 import Web3
+import json
 from pprint import pprint
 from web3 import Web3
 from brownie import chain
@@ -30,6 +33,7 @@ def tracesByBlock(lcl, testenv, blocknumber, layer, dump=False):
             txTrace = getTxTraceByHash(chain,txHash,True)
         except Exception as e:
             print(e)
+        txTrace = getTxTraceByHash(chain,txHash,False)
         try:
             if dump:
                 filename = f'Block_{blocknumber}-Tx_{txHash}.txtrace'
