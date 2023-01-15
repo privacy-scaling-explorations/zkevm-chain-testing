@@ -4,9 +4,10 @@ from pprint import pprint
 import json
 from sqlalchemy import create_engine
 
-def prepare_wcresult_dataframe(circuit,gas_used,metrics,commit_chain,commit_circuits,dummy=False):
+def prepare_wcresult_dataframe(wc_circuit,po_circuit,gas_used,metrics,commit_chain,commit_circuits,dummy=False):
     result = {
-        'circuit'               : circuit,
+        'wc_circuit'            : wc_circuit,
+        'circuit'               : po_circuit,
         'chain_commit_hash'     : commit_chain,
         'circuit_commit_hash'   : commit_circuits,
         'test_date'             : datetime.datetime.now().date(),  
@@ -18,6 +19,8 @@ def prepare_wcresult_dataframe(circuit,gas_used,metrics,commit_chain,commit_circ
         'dummy'                 : dummy
     }
     
+    result = pd.DataFrame([result])
+    result = result.set_index('test_date')    
     return result
 
 def prepare_integrationresult_dataframe(logs, s3, circuit,metrics, commit_chain,commit_circuits,dummy=False):
