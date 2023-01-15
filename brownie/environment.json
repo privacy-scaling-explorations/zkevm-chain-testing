@@ -16,5 +16,16 @@
     "L2BRIDGE" : {
           "address" : "0000000000000000000000000000000000020000",
           "abi": "ZkEvmL1Bridge.abi"
-        }
+        },
+    "reporting": {
+      "db": {
+        "host"     : "postgres-benchmarks.cj6riuea9jeb.eu-central-1.rds.amazonaws.com",
+        "database" : "benchmarks",
+        "user"     : "postgres",
+        "password" : "changeme",
+        "int_table" : "testresults_integration",
+        "wc_table" : "testresults_wcbenchmark"
+      },
+      "s3"        : "https://zkevm-chain-testing.s3.eu-central-1.amazonaws.com/"
+    }
 }

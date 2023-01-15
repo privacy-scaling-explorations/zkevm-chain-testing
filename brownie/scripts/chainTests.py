@@ -4,8 +4,9 @@ from scripts.prover import proof_request, queryProverTasks, flushTasks
 from scripts.circuitUtils import opCodes, calcTxCosts
 from scripts.tools import request_proof, request_prover_tasks,crossChainTx
 from time import sleep
-
+import sys
 from pprint import pprint
+from scripts.reporting import prepare_integrationresult_dataframe, prepare_wcresult_dataframe,pgsql_engine
 
 def test_calibrateOpCode(lcl, circuit, iterations=100, layer=2):
     '''
@@ -159,7 +160,7 @@ def test_calculateBlockCircuitCosts(lcl, blocknumber, dumpTxTrace=False, layer=2
     bl = getBlockInfo(w3,blocknumber)
     txHases = [i['hash'] for i in bl.transactions]
         
-def test_proveSingleCrossChainTx(lcl, proof_options="", abort=False, flush=False, retry=False, layer=2):
+def test_proveSingleCrossChainTx(lcl, chaincommit, circuitscommit, circuit, logs, proof_options="", abort=False, flush=False, retry=False, layer=2):
     '''
     Create a single crosschain transaction invoking the dispatchMessage method of ZkevmL1Bridge contract and 
     initiate a proof generation task for submitted block.
@@ -168,6 +169,8 @@ def test_proveSingleCrossChainTx(lcl, proof_options="", abort=False, flush=False
     try:
         testenv=lcl['env']['testEnvironment']
         url = lcl['env']["rpcUrls"][f'{testenv}'"_BASE"]+f"l{layer}"
+        s3 = lcl['env']['reporting']['s3']
+        pgsqldb = lcl['env']['reporting']['db']
         txNotSent = True
         retry = str(retry).lower()
         proverUrl = lcl['env']["rpcUrls"][f'{testenv}'"_BASE"]+"prover"
@@ -213,6 +216,10 @@ def test_proveSingleCrossChainTx(lcl, proof_options="", abort=False, flush=False
                 pass
         if error:
             error_message = task['result']['Err']
+            metrics = {
+                'result' : 'FAILED',
+                'error'  : error_message
+            }
         if not task_completed:
             sleep(60)
     try:
@@ -224,6 +231,8 @@ def test_proveSingleCrossChainTx(lcl, proof_options="", abort=False, flush=False
         proofs = task["result"]["Ok"]
 
         metrics = {
+                    "error" : None,
+                    "result" : "PASSED",
                     "Block":block,
                     "k" : {
                             "Aggregation":proofs['aggregation']['k'],
@@ -237,4 +246,20 @@ def test_proveSingleCrossChainTx(lcl, proof_options="", abort=False, flush=False
                 }
 
     pprint(metrics)
-    return metrics
+    try:
+        df = prepare_integrationresult_dataframe(logs,s3,circuit,metrics,chaincommit,circuitscommit, dummy=False)
+        if metrics['result'] == "PASSED":
+            df[['logsurl']] = None
+        # print(df)
+        # print(df[['logsurl']])
+        try:
+            engine = pgsql_engine(pgsqldb)
+            table = pgsqldb['int_table']
+            df.to_sql(table,engine,if_exists='append')
+        except Exception as e:
+            print(e)
+    except Exception as e:
+        print(e)
+    if metrics["result"] == "FAILED":
+        sys.exit(0)
+    # return metrics

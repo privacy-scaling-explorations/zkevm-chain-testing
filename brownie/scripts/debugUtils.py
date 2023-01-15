@@ -51,6 +51,7 @@ def getTxTraceByHash(chainObj,hash, dump=False):
     return txTrace
 
 
+
 def getTxTraceByBlock(blocknumber, dump=False):
     '''
     For a given block, returns the traces of all submitted transactions.

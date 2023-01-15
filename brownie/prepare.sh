@@ -33,6 +33,8 @@ install_brownie() {
 #    /home/$USER/.local/bin/pipx inject eth-brownie pandas
      pip3 install eth-brownie
      pip3 install pandas
+     pip3 install sqlalchemy
+     pip3 install psycopg2-binary
     source ~/.bashrc
 }
 

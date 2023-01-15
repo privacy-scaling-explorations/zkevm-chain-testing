@@ -7,6 +7,9 @@ from brownie import chain
 from web3 import Web3
 import json
 from pprint import pprint
+from web3 import Web3
+from brownie import chain
+import json
 from random import randrange
 # import scripts.commonUtils as cu
 import sys
@@ -26,6 +29,10 @@ def tracesByBlock(lcl, testenv, blocknumber, layer, dump=False):
     for tx in transactions:
         txHash = tx['hash'].hex()
         print(txHash)
+        try:
+            txTrace = getTxTraceByHash(chain,txHash,True)
+        except Exception as e:
+            print(e)
         txTrace = getTxTraceByHash(chain,txHash,False)
         try:
             if dump:
@@ -34,7 +41,7 @@ def tracesByBlock(lcl, testenv, blocknumber, layer, dump=False):
                     json.dump(txTrace,writeme,indent=4)
         except Exception as e:
             print(e)
-            
+
 def request_proof(lcl,block,proofoptions=""):
     '''
     Standalone Utility to start a proving task for a given block,
