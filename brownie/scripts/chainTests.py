@@ -45,7 +45,9 @@ def test_calibrateOpCode(lcl, circuit, iterations=100, layer=2):
 
     return iterations
     
-def test_benchProof(lcl,circuit,iterations, proof_options="", abort=False, flush=False, retry=False, layer=2):
+
+def test_benchProof(lcl,po_circuit,chaincommit, circuitscommit,wc_circuit,iterations=100, proof_options="", abort=False, flush=False, retry=False, layer=2):
+
     '''
     Test Sequence: 
     1. Checks if there is ongoing proof task via the info method
@@ -73,9 +75,10 @@ def test_benchProof(lcl,circuit,iterations, proof_options="", abort=False, flush
     testenv=lcl['env']['testEnvironment']
     url = lcl['env']["rpcUrls"][f'{testenv}'"_BASE"]+f"l{layer}"
     w3, chainid = setupW3Provider(url,testenv, layer)
-    contractName, opCode = getScName(circuit)[0], getScName(circuit)[1]
+    contractName, opCode = getScName(wc_circuit)[0], getScName(wc_circuit)[1]
     jsonmap = lcl['jsonmap']
     sc = loadContract(jsonmap, chainid,contractName)
+    pgsqldb = lcl['env']['reporting']['db']
     txNotSent = True
     iterations = int(iterations)
     retry = str(retry).lower()
@@ -95,11 +98,12 @@ def test_benchProof(lcl,circuit,iterations, proof_options="", abort=False, flush
         isIdle,isBusy,tasks = request_prover_tasks(lcl)
  
     while txNotSent:
-        print(f"Submitting transaction with {iterations} calls of worst case opcode ({opCode}) for {circuit} circuit")
+        print(f"Submitting transaction with {iterations} calls of worst case opcode ({opCode}) for {wc_circuit} circuit")
         tx, txNotSent = sendTx(iterations,sc,lcl['owner'])
         
    
     block = tx.block_number
+    gas = tx.gas_used
     print(f"Transaction with {iterations} executions of opcode is submitted in block: {block}. Tx cost is {tx.gas_used}")
 
     print(f'Sending proof request for block {block} ')
@@ -119,6 +123,10 @@ def test_benchProof(lcl,circuit,iterations, proof_options="", abort=False, flush
                 pass
         if error:
             error_message = task['result']['Err']
+            metrics = {
+                'result' : 'FAILED',
+                'error'  : error_message
+            }
         if not task_completed:
             sleep(60)
     try:
@@ -130,6 +138,8 @@ def test_benchProof(lcl,circuit,iterations, proof_options="", abort=False, flush
         proofs = task["result"]["Ok"]
 
         metrics = {
+                    "error" : None,
+                    "result" : "PASSED",
                     "Block":block,
                     "k" : {
                             "Aggregation":proofs['aggregation']['k'],
@@ -143,7 +153,21 @@ def test_benchProof(lcl,circuit,iterations, proof_options="", abort=False, flush
                 }
 
     pprint(metrics)
-    return metrics
+
+    try:
+        df = prepare_wcresult_dataframe(wc_circuit, po_circuit, gas, metrics, chaincommit, circuitscommit, dummy=False)
+
+        try:
+            engine = pgsql_engine(pgsqldb)
+            table = pgsqldb['wc_table']
+            df.to_sql(table,engine,if_exists='append')
+        except Exception as e:
+            print(e)
+    except Exception as e:
+        print(e)    
+    if metrics["result"] == "FAILED":
+        sys.exit(0)
+
 
 
 
