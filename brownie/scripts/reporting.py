@@ -46,17 +46,34 @@ def prepare_wcresult_dataframe(wc_circuit,po_circuit,gas_used,metrics,commit_cha
 
 
 def prepare_integrationresult_dataframe(logs, s3, circuit,metrics, commit_chain,commit_circuits,dummy=False):
-    result = {
-        'circuit'               : circuit,
-        'chain_commit_hash'     : commit_chain,
-        'circuit_commit_hash'   : commit_circuits,
-        'test_date'             : datetime.datetime.now().date(),  
-        'result'                : metrics["result"],
-        'error'                 : metrics["error"],
-        'logsurl'               : f"{s3}{logs}",
-        'dummy'                 : dummy,
-        'max_ram'               : "NotImplemented"
-    }
+    try:
+        if metrics['result'] == 'PASSED':
+            result = {
+                'circuit'               : circuit,
+                'chain_commit_hash'     : commit_chain,
+                'circuit_commit_hash'   : commit_circuits,
+                'test_date'             : datetime.datetime.now().date(),  
+                'result'                : metrics["result"],
+                'error'                 : 'None',
+                'logsurl'               : 'None',
+                'dummy'                 : dummy,
+                'max_ram'               : "NotImplemented"
+            }
+        else:
+            result = {
+                'circuit'               : circuit,
+                'chain_commit_hash'     : commit_chain,
+                'circuit_commit_hash'   : commit_circuits,
+                'test_date'             : datetime.datetime.now().date(),  
+                'result'                : metrics["result"],
+                'error'                 : metrics["error"],
+                'logsurl'               : f"{s3}{logs}",
+                'dummy'                 : dummy,
+                'max_ram'               : "NotImplemented"
+            }
+    except Exception as e:
+        print(e) 
+              
     result = pd.DataFrame([result])
     result = result.set_index('test_date')
     
