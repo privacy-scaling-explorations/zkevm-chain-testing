@@ -154,6 +154,7 @@ def test_benchProof(lcl,po_circuit,chaincommit, circuitscommit,wc_circuit,iterat
 
     try:
         df = prepare_wcresult_dataframe(wc_circuit, po_circuit, gas, metrics, chaincommit, circuitscommit, dummy=False)
+
         try:
             engine = pgsql_engine(pgsqldb)
             table = pgsqldb['wc_table']
