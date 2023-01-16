@@ -101,6 +101,7 @@ def test_benchProof(lcl,po_circuit,chaincommit, circuitscommit,wc_circuit,iterat
         
    
     block = tx.block_number
+    gas = tx.gas_used
     print(f"Transaction with {iterations} executions of opcode is submitted in block: {block}. Tx cost is {tx.gas_used}")
 
     print(f'Sending proof request for block {block} ')
@@ -152,7 +153,7 @@ def test_benchProof(lcl,po_circuit,chaincommit, circuitscommit,wc_circuit,iterat
     pprint(metrics)
 
     try:
-        df = prepare_wcresult_dataframe(wc_circuit, po_circuit, metrics, chaincommit, circuitscommit, dummy=True):
+        df = prepare_wcresult_dataframe(wc_circuit, po_circuit, gas, metrics, chaincommit, circuitscommit, dummy=False)
         try:
             engine = pgsql_engine(pgsqldb)
             table = pgsqldb['wc_table']
