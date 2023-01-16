@@ -45,7 +45,9 @@ def test_calibrateOpCode(lcl, circuit, iterations=100, layer=2):
 
     return iterations
     
+
 def test_benchProof(lcl,po_circuit,chaincommit, circuitscommit,wc_circuit,iterations=100, proof_options="", abort=False, flush=False, retry=False, layer=2):
+
     '''
     Test Sequence: 
     1. Checks if there is ongoing proof task via the info method
