@@ -74,7 +74,7 @@ def prepare_integrationresult_dataframe(logs, s3, circuit,metrics, commit_chain,
                 'degree_circuit'        : 0,
                 'degree_aggregation'    : 0,  
                 'result'                : metrics["result"],
-                'error'                 : metrics["error"],
+                'error'                 : str(metrics["error"])[:199],
                 'logsurl'               : f"{s3}{logs}",
                 'dummy'                 : dummy,
                 'max_ram'               : "NotImplemented"
