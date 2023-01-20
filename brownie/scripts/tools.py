@@ -3,6 +3,7 @@ from scripts.prover import proof_request, queryProverTasks, flushTasks,proof_opt
 from scripts.w3Utils import sendTx, loadContract, setupW3Provider, getScName, getBlockNumber, dispatchMessage, loadAccount, loadPreCompiledContract, getBalances
 from scripts.circuitUtils import calcTxCosts
 from scripts.debugUtils import getBlockInfo, getTxTraceByHash
+import scripts.reporting as reporting
 from brownie import chain
 from web3 import Web3
 import json
@@ -14,6 +15,23 @@ from random import randrange
 # import scripts.commonUtils as cu
 import sys
 
+def update_results_db(lcl,test_id,table):
+    env         = lcl["env"]
+    pgsqldb     = env["reporting"]["db"]
+    grafana_url = env["grafana-dashboard-prefix"]
+
+    print(f'Updating table {table}')
+    try:
+        cpu_stats,cpus = reporting.write_test_post_data(pgsqldb, grafana_url, test_id, table)
+    except Exception as e:
+        print(e)
+
+    print('Updating table testresults_cpustat')
+    try:
+        reporting.write_perCore_stats(pgsqldb, cpu_stats, cpus,test_id, dummy=False)
+    except Exception as e:
+        print(e)
+        
 def tracesByBlock(lcl, testenv, blocknumber, layer, dump=False):
     try:
         env = lcl["env"]

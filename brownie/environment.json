@@ -27,5 +27,6 @@
         "wc_table" : "testresults_wcbenchmark"
       },
       "s3"        : "https://zkevm-chain-testing.s3.eu-central-1.amazonaws.com/"
-    }
+    },
+    "grafana-dashboard-prefix" : "http://grafana.zkevm-testnet.org/d/HeGMkOo4z/zkevm-chain-tests-cpu_stats?orgId=1&var-test_id="
 }
