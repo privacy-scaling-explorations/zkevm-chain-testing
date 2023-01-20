@@ -64,7 +64,7 @@ def prepare_integrationresult_dataframe(test_id, logs, s3, circuit,metrics, comm
                 'error'                 : 'None',
                 'logsurl'               : 'None',
                 'dummy'                 : dummy,
-                'max_ram'               : 0
+                'max_ram'               : "Not yet"
             }
         else:
             result = {
@@ -81,7 +81,7 @@ def prepare_integrationresult_dataframe(test_id, logs, s3, circuit,metrics, comm
                 'error'                 : str(metrics["error"])[:199],
                 'logsurl'               : f"{s3}{logs}",
                 'dummy'                 : dummy,
-                'max_ram'               : 0
+                'max_ram'               : "Not yet"
             }
     except Exception as e:
         print(e)
@@ -139,9 +139,9 @@ def prepare_test_sysstats():
 
     return sysstat, cpu_stats, cpus
 
-def write_test_post_data(pgsqldb, grafana_url, test_id, table):
-    sysstat, cpu_stats, cpus = prepare_test_sysstats()
-    engine = pgsql_engine(pgsqldb)
+def write_test_post_data(engine, grafana_url, test_id, table):
+    sysstat, cpu_statistics, cpus = prepare_test_sysstats()
+    # engine = pgsql_engine(pgsqldb)
 
     cpu_all_Average = sysstat["cpu_all_Average"]
     cpu_all_Max     = sysstat["cpu_all_Max"]
@@ -164,22 +164,23 @@ def write_test_post_data(pgsqldb, grafana_url, test_id, table):
     with engine.begin() as conn:
         conn.execute(sql)
 
-    return cpu_stats,cpus
+    return cpu_statistics,cpus
+
 ######################################################
 ################# REPORTING PER VCPU #################
 ######################################################
 
-def write_perCore_stats(pgsqldb, cpu_stats, cpus,test_id, dummy=False):
-    engine = pgsql_engine(pgsqldb)
-    cpu_stats = cpu_stats[cpu_stats['CPU'] != 'all']
-    cpu_stats['CPU'] = cpu_stats['CPU'].astype(int)
+def write_perCore_stats(engine, cpu_statistics, cpus,test_id, dummy=False):
+    # engine = pgsql_engine(pgsqldb)
+    cpu_statistics = cpu_statistics[cpu_statistics['CPU'] != 'all']
+    cpu_statistics['CPU'] = cpu_statistics['CPU'].astype(int)
     result = pd.DataFrame(columns = ['vCore','vCore_Average','vCore_Max'])
     for cpu in cpus:
         try:
             series = {
                 'vCore'         : cpu,
-                'vCore_Average' : round(float(100) - cpu_stats[cpu_stats['CPU'] == cpu][cpu_stats['timestamp'] == 'Average'].iloc[0]['idle'], 2),
-                'vCore_Max'     : round(float(100) - cpu_stats[cpu_stats['timestamp'] != 'Average'][cpu_stats['CPU'] == cpu]['idle'].min(), 2),
+                'vCore_Average' : round(float(100) - cpu_statistics[cpu_statistics['CPU'] == cpu][cpu_statistics['timestamp'] == 'Average'].iloc[0]['idle'], 2),
+                'vCore_Max'     : round(float(100) - cpu_statistics[cpu_statistics['timestamp'] != 'Average'][cpu_statistics['CPU'] == cpu]['idle'].min(), 2),
                 'dummy'         : dummy,
                 'test_id'       : test_id
             }

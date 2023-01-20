@@ -19,19 +19,20 @@ def update_results_db(lcl,test_id,table):
     env         = lcl["env"]
     pgsqldb     = env["reporting"]["db"]
     grafana_url = env["grafana-dashboard-prefix"]
+    engine = reporting.pgsql_engine(pgsqldb)
 
     print(f'Updating table {table}')
     try:
-        cpu_stats,cpus = reporting.write_test_post_data(pgsqldb, grafana_url, test_id, table)
+        cpu_statistics,cpus = reporting.write_test_post_data(engine, grafana_url, test_id, table)
     except Exception as e:
         print(e)
 
     print('Updating table testresults_cpustat')
     try:
-        reporting.write_perCore_stats(pgsqldb, cpu_stats, cpus,test_id, dummy=False)
+        reporting.write_perCore_stats(engine, cpu_statistics, cpus,test_id, dummy=False)
     except Exception as e:
         print(e)
-        
+
 def tracesByBlock(lcl, testenv, blocknumber, layer, dump=False):
     try:
         env = lcl["env"]
