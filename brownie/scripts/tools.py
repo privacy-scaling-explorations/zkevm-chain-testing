@@ -15,7 +15,7 @@ from random import randrange
 # import scripts.commonUtils as cu
 import sys
 
-def update_results_db(lcl,test_id,table,dummy=True):
+def update_results_db(lcl,test_id,table,dummy=False):
    
     statsDir = lcl['statsdir']
     env         = lcl["env"]
