@@ -104,8 +104,10 @@ def pgsql_engine(pgsqldb):
 ################# REPORTING SYSSTAT #################
 #####################################################
 
-def prepare_test_sysstats():
-    cpu_stats           = pd.read_csv('cpu.stats')
+def prepare_test_sysstats(statsDir):
+    cstats = f'{statsDir}/cpu.stats'
+    mstats = f'{statsDir}/mem.stats'
+    cpu_stats           = pd.read_csv(cstats)
     cpu_stats.columns   = ('timestamp','CPU','user','nice','system','iowait','steal','idle')
     cpu_stats           = cpu_stats[['timestamp','CPU','idle']]
     cpu_stats['idle']   = pd.to_numeric(cpu_stats['idle'],errors='coerce')
@@ -119,7 +121,7 @@ def prepare_test_sysstats():
     cpu_all_Average = float(100) - cpu_all_df[cpu_all_df['timestamp'] == 'Average'].iloc[0]['idle']
     cpu_all_Average = round(cpu_all_Average, 2)
 
-    mem_stats = pd.read_csv('mem.stats')
+    mem_stats = pd.read_csv(mstats)
     mem_stats.columns = ('timestamp','kbmemfree','kbavail','kbmemused','%memused','kbbuffers','kbcached','kbcommit','%commit','kbactive','kbinact','kbdirty')
     mem_stats = mem_stats[['kbmemused']]
     absolute = mem_stats['kbmemused']
@@ -139,8 +141,8 @@ def prepare_test_sysstats():
 
     return sysstat, cpu_stats, cpus
 
-def write_test_post_data(engine, grafana_url, test_id, table):
-    sysstat, cpu_statistics, cpus = prepare_test_sysstats()
+def write_test_post_data(engine, grafana_url, test_id, table, statsDir):
+    sysstat, cpu_statistics, cpus = prepare_test_sysstats(statsDir)
     # engine = pgsql_engine(pgsqldb)
 
     cpu_all_Average = sysstat["cpu_all_Average"]
@@ -154,12 +156,12 @@ def write_test_post_data(engine, grafana_url, test_id, table):
         f'SET "cpu_all_Average" = {cpu_all_Average},\n'
         f'"cpu_all_Max" = {cpu_all_Max},\n'
         f'"cpu_count" = {cpu_count},\n'
-        f"max_ram = '{max_ram}'\n,"
+        f"max_ram = '{max_ram}',\n"
         f"cpu_stats = '{cpu_stats}'\n"
-        f"WHERE test_id='{test_id}'"
+        f"WHERE test_id='{test_id}';"
     )
     
-    # print(sql)
+    print(sql)
     
     with engine.begin() as conn:
         conn.execute(sql)
@@ -170,7 +172,7 @@ def write_test_post_data(engine, grafana_url, test_id, table):
 ################# REPORTING PER VCPU #################
 ######################################################
 
-def write_perCore_stats(engine, cpu_statistics, cpus,test_id, dummy=False):
+def write_perCore_stats(engine, cpu_statistics, cpus,test_id,dummy=False):
     # engine = pgsql_engine(pgsqldb)
     cpu_statistics = cpu_statistics[cpu_statistics['CPU'] != 'all']
     cpu_statistics['CPU'] = cpu_statistics['CPU'].astype(int)

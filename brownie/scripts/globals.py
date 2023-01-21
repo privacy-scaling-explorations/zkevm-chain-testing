@@ -29,6 +29,7 @@ def main(*args):
         env = cu.getEnv(envfile)
         testenv=env['testEnvironment']
         projectDir = cu.getProjectDir(env)
+        statsdir = projectDir.joinpath('brownie/scripts')
         keyfilesDir = projectDir.joinpath(env["keystoredir"])
         deploymentsDir = projectDir.joinpath(f'brownie/{env["deployments"]}')
         resultsDir = projectDir.joinpath(f'brownie/{env["resultsdir"]}')    
