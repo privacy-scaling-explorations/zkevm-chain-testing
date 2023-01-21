@@ -15,7 +15,7 @@ from random import randrange
 # import scripts.commonUtils as cu
 import sys
 
-def update_results_db(lcl,test_id,table):
+def update_results_db(lcl,test_id,table,dummy=True):
     env         = lcl["env"]
     pgsqldb     = env["reporting"]["db"]
     grafana_url = env["grafana-dashboard-prefix"]
@@ -29,7 +29,7 @@ def update_results_db(lcl,test_id,table):
 
     print('Updating table testresults_cpustat')
     try:
-        reporting.write_perCore_stats(engine, cpu_statistics, cpus,test_id, dummy=False)
+        reporting.write_perCore_stats(engine, cpu_statistics, cpus,test_id, dummy)
     except Exception as e:
         print(e)
 
