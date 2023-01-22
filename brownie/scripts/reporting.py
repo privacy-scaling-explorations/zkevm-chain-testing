@@ -3,6 +3,8 @@ import datetime, sys, psycopg2
 from pprint import pprint
 import json
 from sqlalchemy import create_engine
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def prepare_wcresult_dataframe(test_id, wc_circuit,po_circuit,gas_used,metrics,commit_chain,commit_circuits,dummy=False):
     try:

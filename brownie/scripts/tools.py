@@ -14,6 +14,8 @@ import json
 from random import randrange
 # import scripts.commonUtils as cu
 import sys
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def update_results_db(lcl,test_id,table,dummy=False):
    
