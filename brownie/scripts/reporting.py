@@ -4,7 +4,10 @@ from pprint import pprint
 import json
 from sqlalchemy import create_engine
 import warnings
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=UserWarning)
+
 
 def prepare_wcresult_dataframe(test_id, wc_circuit,po_circuit,gas_used,metrics,commit_chain,commit_circuits,dummy=False):
     try:
@@ -63,8 +66,8 @@ def prepare_integrationresult_dataframe(test_id, logs, s3, circuit,metrics, comm
                 'degree_circuit'        : metrics["k"]["Circuit"],
                 'degree_aggregation'    : metrics["k"]["Aggregation"],
                 'result'                : metrics["result"],
+                'logsurl'               : f"{s3}{logs}",                
                 'error'                 : 'None',
-                'logsurl'               : 'None',
                 'dummy'                 : dummy,
                 'max_ram'               : "Not yet"
             }
@@ -113,7 +116,8 @@ def prepare_test_sysstats(statsDir):
     cpu_stats.columns   = ('timestamp','CPU','user','nice','system','iowait','steal','idle')
     cpu_stats           = cpu_stats[['timestamp','CPU','idle']]
     cpu_stats['idle']   = pd.to_numeric(cpu_stats['idle'],errors='coerce')
-    cpu_stats           = cpu_stats[cpu_stats.CPU != 'CPU']
+    # cpu_stats           = cpu_stats[cpu_stats.CPU != 'CPU']
+    cpu_stats           = cpu_stats[cpu_stats.CPU == 'all']
     cpus                = cpu_stats[cpu_stats['CPU']!='all']['CPU'].unique()
     cpus                = [int(i) for i in cpus if i]
 
@@ -128,9 +132,32 @@ def prepare_test_sysstats(statsDir):
     mem_stats = mem_stats[['kbmemused']]
     absolute = mem_stats['kbmemused']
     mem_stats['absolute'] = absolute
+
+    mem_stats2 = pd.read_csv(mstats)
+    mem_stats2.columns = ('timestamp','kbmemfree','kbavail','kbmemused','%memused','kbbuffers','kbcached','kbcommit','%commit','kbactive','kbinact','kbdirty')
+    mem_stats2 = mem_stats2[['timestamp','kbmemused']]
+    absolute2 = mem_stats2['kbmemused']
+    mem_stats2['absolute'] = absolute2
+
     def s2f(s):
         return float("".join([i for i in s if not i.isalpha()]))
     mem_stats['absolute'] = mem_stats['absolute'].apply(s2f)
+    mem_stats2['absolute'] = mem_stats2['absolute'].apply(s2f)
+
+    def normalizeMemInGb(vector):
+        reading = vector[0]
+        unit = vector[1]
+        if unit == "G":
+            out = reading
+        elif unit == "T":
+            out = 1000*reading
+        
+        return reading
+        
+    mem_stats2['unit'] = mem_stats2['kbmemused'].apply(lambda x: "".join([i for i in x if i.isalpha()]))
+    mem_stats2 = mem_stats2[['timestamp','absolute', 'unit']] 
+    mem_stats2['normalized2Gb'] = mem_stats2[['absolute', 'unit']].apply(normalizeMemInGb, axis=1)
+
     max_idx = mem_stats['absolute'].idxmax()
     max_ram = mem_stats.iloc[max_idx]['kbmemused']
 
@@ -141,17 +168,17 @@ def prepare_test_sysstats(statsDir):
         'max_ram'        : max_ram
     }
 
-    return sysstat, cpu_stats, cpus
+    return sysstat, cpu_stats,mem_stats2, cpus
 
 def write_test_post_data(engine, grafana_url, test_id, table, statsDir):
-    sysstat, cpu_statistics, cpus = prepare_test_sysstats(statsDir)
+    sysstat, cpu_statistics, mem_statistics, cpus = prepare_test_sysstats(statsDir)
     # engine = pgsql_engine(pgsqldb)
 
     cpu_all_Average = sysstat["cpu_all_Average"]
     cpu_all_Max     = sysstat["cpu_all_Max"]
     cpu_count       = sysstat["cpu_count"]
     max_ram         = sysstat["max_ram"]
-    cpu_stats       = f"{grafana_url}{test_id}"
+    sys_stats       = f"{grafana_url}{test_id}"
     
     sql=( 
         f"UPDATE {table}\n"
@@ -159,7 +186,7 @@ def write_test_post_data(engine, grafana_url, test_id, table, statsDir):
         f'"cpu_all_Max" = {cpu_all_Max},\n'
         f'"cpu_count" = {cpu_count},\n'
         f"max_ram = '{max_ram}',\n"
-        f"cpu_stats = '{cpu_stats}'\n"
+        f"sys_stats = '{sys_stats}'\n"
         f"WHERE test_id='{test_id}';"
     )
     
@@ -168,12 +195,35 @@ def write_test_post_data(engine, grafana_url, test_id, table, statsDir):
     with engine.begin() as conn:
         conn.execute(sql)
 
-    return cpu_statistics,cpus
+    return cpu_statistics,mem_statistics,cpus
 
 ######################################################
 ################# REPORTING PER VCPU #################
 ######################################################
 
+def write_mem_time(engine, mem_statistics, test_id, dummy=True):
+    table = 'testresults_memtime'
+    mem_stats_over_time = pd.DataFrame(columns=['timestamp','utilizationgb', 'test_id', 'dummy'])
+    mem_stats_over_time['utilizationgb'] = mem_statistics['normalized2Gb']
+    mem_stats_over_time['test_id'] = mem_statistics['unit'].apply(lambda x: f'{test_id}')
+    mem_stats_over_time['dummy'] = mem_statistics['unit'].apply(lambda x: dummy)
+    mem_stats_over_time['timestamp'] = mem_statistics['timestamp']
+    mem_stats_over_time = mem_stats_over_time[mem_stats_over_time['timestamp'] != 'Average']
+    mem_stats_over_time = mem_stats_over_time.set_index('timestamp')
+    mem_stats_over_time.to_sql(table,engine,if_exists='append')
+
+def write_cpuall_time(engine, cpu_statistics, test_id, dummy=True):
+    table = 'testresults_cpualltime'
+    cpu_stats_all_over_time = pd.DataFrame(columns=['timestamp','utilizationall', 'test_id', 'dummy'])
+    cpu_stats_all_over_time['utilizationall'] = cpu_statistics['idle'].apply(lambda x: round(float(100) - x,2))
+    cpu_stats_all_over_time['test_id'] = cpu_statistics['idle'].apply(lambda x: f'{test_id}')
+    cpu_stats_all_over_time['dummy'] = cpu_statistics['idle'].apply(lambda x: dummy)
+    cpu_stats_all_over_time['timestamp'] = cpu_statistics['timestamp']
+    cpu_stats_all_over_time = cpu_stats_all_over_time[cpu_stats_all_over_time['timestamp'] != 'Average']
+    cpu_stats_all_over_time = cpu_stats_all_over_time.set_index('timestamp')
+    cpu_stats_all_over_time.to_sql(table,engine,if_exists='append')
+
+    
 def write_perCore_stats(engine, cpu_statistics, cpus,test_id,dummy=False):
     # engine = pgsql_engine(pgsqldb)
     cpu_statistics = cpu_statistics[cpu_statistics['CPU'] != 'all']

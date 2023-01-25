@@ -272,8 +272,8 @@ def test_proveSingleCrossChainTx(lcl, test_id, chaincommit, circuitscommit, circ
     pprint(metrics)
     try:
         df = prepare_integrationresult_dataframe(test_id, logs,s3,circuit,metrics,chaincommit,circuitscommit, dummy=False)
-        if metrics['result'] == "PASSED":
-            df[['logsurl']] = None
+        # if metrics['result'] == "PASSED":
+        #     df[['logsurl']] = None
         # print(df)
         # print(df[['logsurl']])
         try:

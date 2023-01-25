@@ -7,7 +7,7 @@
     "deployments": "build/deployments/",
     "keystorepass" : "password",
     "rpcUrls" : {
-        "username_BASE" : "http://ip-address/rpc/" 
+        "maronis_BASE" : "http://ip-address/rpc/" 
         },
     "L1BRIDGE" : {
           "address": "936a70c0b28532aa22240dce21f89a8399d6ac60",
@@ -28,5 +28,5 @@
       },
       "s3"        : "https://zkevm-chain-testing.s3.eu-central-1.amazonaws.com/"
     },
-    "grafana-dashboard-prefix" : "http://grafana.zkevm-testnet.org/d/HeGMkOo4z/zkevm-chain-tests-cpu_stats?orgId=1&var-test_id="
+    "grafana-dashboard-prefix" : "http://grafana.zkevm-testnet.org/d/eBJJvio4k/zkevm-chain-tests-dev?orgId=1&var-test_id="
 }

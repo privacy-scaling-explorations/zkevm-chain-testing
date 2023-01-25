@@ -7,6 +7,7 @@ import scripts.reporting as reporting
 from brownie import chain
 from web3 import Web3
 import json
+from time import sleep
 from pprint import pprint
 from web3 import Web3
 from brownie import chain
@@ -14,10 +15,8 @@ import json
 from random import randrange
 # import scripts.commonUtils as cu
 import sys
-import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
 
-def update_results_db(lcl,test_id,table,dummy=False):
+def update_results_db(lcl,test_id,table,dummy=True):
    
     statsDir = lcl['statsdir']
     env         = lcl["env"]
@@ -27,13 +26,25 @@ def update_results_db(lcl,test_id,table,dummy=False):
 
     print(f'Updating table {table}')
     try:
-        cpu_statistics,cpus = reporting.write_test_post_data(engine, grafana_url, test_id, table, statsDir)
+        cpu_statistics,mem_statistics,cpus = reporting.write_test_post_data(engine, grafana_url, test_id, table, statsDir)
     except Exception as e:
         print(e)
 
-    print('Updating table testresults_cpustat')
-    try:
-        reporting.write_perCore_stats(engine, cpu_statistics, cpus,test_id, dummy)
+    # print('Updating table testresults_cpustat')
+    # try:
+    #     reporting.write_perCore_stats(engine, cpu_statistics, cpus,test_id, dummy)
+    # except Exception as e:
+    #     print(e)
+
+    print('Updating table testresults_cpualltime')
+    try: 
+        reporting.write_cpuall_time(engine,cpu_statistics, test_id, dummy)
+    except Exception as e:
+        print(e)
+
+    print('Updating table testresults_memtime')
+    try: 
+        reporting.write_mem_time(engine,mem_statistics, test_id, dummy)
     except Exception as e:
         print(e)
 
