@@ -46,7 +46,7 @@ def test_calibrateOpCode(lcl, circuit, iterations=100, layer=2):
     return iterations
     
 
-def test_benchProof(lcl,po_circuit,chaincommit, circuitscommit,wc_circuit,iterations=100, proof_options="", abort=False, flush=False, retry=False, layer=2):
+def test_benchProof(lcl, test_id, po_circuit,chaincommit, circuitscommit,wc_circuit,iterations=100, proof_options="", abort=False, flush=False, retry=False, layer=2):
 
     '''
     Test Sequence: 
@@ -155,7 +155,7 @@ def test_benchProof(lcl,po_circuit,chaincommit, circuitscommit,wc_circuit,iterat
     pprint(metrics)
 
     try:
-        df = prepare_wcresult_dataframe(wc_circuit, po_circuit, gas, metrics, chaincommit, circuitscommit, dummy=False)
+        df = prepare_wcresult_dataframe(test_id, wc_circuit, po_circuit, gas, metrics, chaincommit, circuitscommit, dummy=False)
 
         try:
             engine = pgsql_engine(pgsqldb)
@@ -184,7 +184,7 @@ def test_calculateBlockCircuitCosts(lcl, blocknumber, dumpTxTrace=False, layer=2
     bl = getBlockInfo(w3,blocknumber)
     txHases = [i['hash'] for i in bl.transactions]
         
-def test_proveSingleCrossChainTx(lcl, chaincommit, circuitscommit, circuit, logs, proof_options="", abort=False, flush=False, retry=False, layer=2):
+def test_proveSingleCrossChainTx(lcl, test_id, chaincommit, circuitscommit, circuit, logs, proof_options="", abort=False, flush=False, retry=False, layer=2):
     '''
     Create a single crosschain transaction invoking the dispatchMessage method of ZkevmL1Bridge contract and 
     initiate a proof generation task for submitted block.
@@ -271,9 +271,9 @@ def test_proveSingleCrossChainTx(lcl, chaincommit, circuitscommit, circuit, logs
 
     pprint(metrics)
     try:
-        df = prepare_integrationresult_dataframe(logs,s3,circuit,metrics,chaincommit,circuitscommit, dummy=False)
-        if metrics['result'] == "PASSED":
-            df[['logsurl']] = None
+        df = prepare_integrationresult_dataframe(test_id, logs,s3,circuit,metrics,chaincommit,circuitscommit, dummy=False)
+        # if metrics['result'] == "PASSED":
+        #     df[['logsurl']] = None
         # print(df)
         # print(df[['logsurl']])
         try:

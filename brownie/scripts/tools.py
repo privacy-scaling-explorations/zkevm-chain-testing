@@ -3,9 +3,11 @@ from scripts.prover import proof_request, queryProverTasks, flushTasks,proof_opt
 from scripts.w3Utils import sendTx, loadContract, setupW3Provider, getScName, getBlockNumber, dispatchMessage, loadAccount, loadPreCompiledContract, getBalances
 from scripts.circuitUtils import calcTxCosts
 from scripts.debugUtils import getBlockInfo, getTxTraceByHash
+import scripts.reporting as reporting
 from brownie import chain
 from web3 import Web3
 import json
+from time import sleep
 from pprint import pprint
 from web3 import Web3
 from brownie import chain
@@ -13,6 +15,38 @@ import json
 from random import randrange
 # import scripts.commonUtils as cu
 import sys
+
+def update_results_db(lcl,test_id,table,dummy=False):
+   
+    statsDir = lcl['statsdir']
+    env         = lcl["env"]
+    pgsqldb     = env["reporting"]["db"]
+    grafana_url = env["grafana-dashboard-prefix"]
+    engine = reporting.pgsql_engine(pgsqldb)
+
+    print(f'Updating table {table}')
+    try:
+        cpu_statistics,mem_statistics,cpus = reporting.write_test_post_data(engine, grafana_url, test_id, table, statsDir)
+    except Exception as e:
+        print(e)
+
+    print('Updating table testresults_cpustat')
+    try:
+        reporting.write_perCore_stats(engine, cpu_statistics, cpus,test_id, dummy)
+    except Exception as e:
+        print(e)
+
+    print('Updating table testresults_cpualltime')
+    try: 
+        reporting.write_cpuall_time(engine,cpu_statistics, test_id, dummy)
+    except Exception as e:
+        print(e)
+
+    print('Updating table testresults_memtime')
+    try: 
+        reporting.write_mem_time(engine,mem_statistics, test_id, dummy)
+    except Exception as e:
+        print(e)
 
 def tracesByBlock(lcl, testenv, blocknumber, layer, dump=False):
     try:
