@@ -16,7 +16,7 @@ from random import randrange
 # import scripts.commonUtils as cu
 import sys
 
-def update_results_db(lcl,test_id,table,dummy=True):
+def update_results_db(lcl,test_id,table,dummy=False):
    
     statsDir = lcl['statsdir']
     env         = lcl["env"]
@@ -30,11 +30,11 @@ def update_results_db(lcl,test_id,table,dummy=True):
     except Exception as e:
         print(e)
 
-    # print('Updating table testresults_cpustat')
-    # try:
-    #     reporting.write_perCore_stats(engine, cpu_statistics, cpus,test_id, dummy)
-    # except Exception as e:
-    #     print(e)
+    print('Updating table testresults_cpustat')
+    try:
+        reporting.write_perCore_stats(engine, cpu_statistics, cpus,test_id, dummy)
+    except Exception as e:
+        print(e)
 
     print('Updating table testresults_cpualltime')
     try: 

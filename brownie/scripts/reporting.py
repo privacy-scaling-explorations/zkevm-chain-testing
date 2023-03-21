@@ -203,7 +203,7 @@ def write_test_post_data(engine, grafana_url, test_id, table, statsDir):
 ################# REPORTING PER VCPU #################
 ######################################################
 
-def write_mem_time(engine, mem_statistics, test_id, dummy=True):
+def write_mem_time(engine, mem_statistics, test_id, dummy=False):
     table = 'testresults_memtime'
     mem_stats_over_time = pd.DataFrame(columns=['timestamp','utilizationgb', 'test_id', 'dummy'])
     mem_stats_over_time['utilizationgb'] = mem_statistics['normalized2Gb']
@@ -214,7 +214,7 @@ def write_mem_time(engine, mem_statistics, test_id, dummy=True):
     mem_stats_over_time = mem_stats_over_time.set_index('timestamp')
     mem_stats_over_time.to_sql(table,engine,if_exists='append')
 
-def write_cpuall_time(engine, cpu_statistics, test_id, dummy=True):
+def write_cpuall_time(engine, cpu_statistics, test_id, dummy=False):
     table = 'testresults_cpualltime'
     cpu_stats_all_over_time = pd.DataFrame(columns=['timestamp','utilizationall', 'test_id', 'dummy'])
     cpu_stats_all_over_time['utilizationall'] = cpu_statistics['idle'].apply(lambda x: round(float(100) - x,2))
