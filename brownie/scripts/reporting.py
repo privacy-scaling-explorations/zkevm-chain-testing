@@ -2,12 +2,20 @@ import pandas as pd
 import datetime, sys, psycopg2
 from pprint import pprint
 import json
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import warnings
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 
+def pgsql_engine(pgsqldb):
+    user     = pgsqldb['user']
+    password = pgsqldb['password']
+    host     = pgsqldb['host']
+    database = pgsqldb['database']
+    engine   = create_engine(f'postgresql://{user}:{password}@{host}:5432/{database}')
+ 
+    return engine
 
 def prepare_wcresult_dataframe(test_id, wc_circuit,po_circuit,gas_used,metrics,commit_chain,commit_circuits,dummy=False):
     try:
@@ -96,14 +104,7 @@ def prepare_integrationresult_dataframe(test_id, logs, s3, circuit,metrics, comm
 
     return result
 
-def pgsql_engine(pgsqldb):
-    user     = pgsqldb['user']
-    password = pgsqldb['password']
-    host     = pgsqldb['host']
-    database = pgsqldb['database']
-    engine   = create_engine(f'postgresql://{user}:{password}@{host}:5432/{database}')
 
-    return engine
 
 #####################################################
 ################# REPORTING SYSSTAT #################
@@ -117,8 +118,9 @@ def prepare_test_sysstats(statsDir):
     cpu_stats           = cpu_stats[['timestamp','CPU','idle']]
     cpu_stats['idle']   = pd.to_numeric(cpu_stats['idle'],errors='coerce')
     # cpu_stats           = cpu_stats[cpu_stats.CPU != 'CPU']
+    cpu_stats2          = cpu_stats 
     cpu_stats           = cpu_stats[cpu_stats.CPU == 'all']
-    cpus                = cpu_stats[cpu_stats['CPU']!='all']['CPU'].unique()
+    cpus                = cpu_stats2[cpu_stats2['CPU']!='all']['CPU'].unique()
     cpus                = [int(i) for i in cpus if i]
 
     cpu_all_df = cpu_stats[cpu_stats['CPU'] == 'all']
@@ -193,7 +195,7 @@ def write_test_post_data(engine, grafana_url, test_id, table, statsDir):
     print(sql)
     
     with engine.begin() as conn:
-        conn.execute(sql)
+        conn.execute(text(sql))
 
     return cpu_statistics,mem_statistics,cpus
 

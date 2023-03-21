@@ -146,8 +146,8 @@ def test_benchProof(lcl, test_id, po_circuit,chaincommit, circuitscommit,wc_circ
                             "Circuit" :  proofs['circuit']['k']
                     },
                     "Duration": {
-                                "Aggregation" :proofs['aggregation']['duration'],
-                                "Circuit"     :proofs['circuit']['duration']
+                                "Aggregation" :proofs['aggregation']['aux']['proof'],
+                                "Circuit"     :proofs['circuit']['aux']['proof']
                     },
                     "Config": proofs['config']
                 }
@@ -263,8 +263,8 @@ def test_proveSingleCrossChainTx(lcl, test_id, chaincommit, circuitscommit, circ
                             "Circuit" :  proofs['circuit']['k']
                     },
                     "Duration": {
-                                "Aggregation" :proofs['aggregation']['duration'],
-                                "Circuit"     :proofs['circuit']['duration']
+                                "Aggregation" :proofs['aggregation']['aux']['proof'],
+                                "Circuit"     :proofs['circuit']['aux']['proof']
                     },
                     "Config": proofs['config']
                 }
