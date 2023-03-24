@@ -333,3 +333,35 @@ def crossChainTx(lcl,layer):
         print(e)
         txNotSent=True
     return tx, txNotSent
+
+def update_results_db_new(lcl,cpus,test_id,table,dummy=False):
+   
+    statsDir = lcl['statsdir']
+    env         = lcl["env"]
+    pgsqldb     = env["reporting"]["db"]
+    grafana_url = env["grafana-dashboard-prefix"]
+    engine = reporting.pgsql_engine(pgsqldb)
+
+    print(f'Calculating System Statistics')
+    try:
+        cpustats, memstats, sysstat = reporting.calc_stats(statsDir, cpus)
+    except Exception as e:
+        print(e)
+
+    print(f'Updating table {table}')
+    try:
+        reporting.write_test_post_data_new(engine, grafana_url, test_id, table, sysstat)
+    except Exception as e:
+        print(e)
+
+    print('Updating table testresults_cpualltime')
+    try: 
+        reporting.write_cpuall_time_new(engine,cpustats, test_id)
+    except Exception as e:
+        print(e)
+
+    print('Updating table testresults_memtime')
+    try: 
+        reporting.write_mem_time_new(engine,memstats, test_id)
+    except Exception as e:
+        print(e)

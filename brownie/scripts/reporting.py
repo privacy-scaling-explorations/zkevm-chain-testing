@@ -248,3 +248,106 @@ def write_perCore_stats(engine, cpu_statistics, cpus,test_id,dummy=False):
     table='testresults_cpustat'
     result.to_sql(table,engine,if_exists='append',index=False)
 
+# NEW REPORTING MODEL #
+
+def load_stats(file):
+    '''
+    loads raw mem/cpu sar data from csv to dataframe
+    '''
+    try:
+        with open(file,'r') as filedata:
+            filedatalist = [i for i in filedata.read().splitlines()]
+            header = [i for i in filedatalist if 'LINUX-RESTART' in i][0]
+            cpus = header.split('(')[1].split()[0]
+            cpudatalist = [i for i in filedatalist if 'LINUX-RESTART' not in i]
+            columns = cpudatalist[0].split(';')
+            cpudatalist = [i for i in cpudatalist if 'hostname' not in i]
+            df = pd.DataFrame([i.split(';') for i in cpudatalist], columns=columns)
+        return df, cpus
+    except Exception as e:
+        print(e)
+        return None
+
+def calc_stats(statsDir, cpus):
+    '''
+    returns 2 dataframes with cpu/mem stats to be consumed by postgresql engine
+    returns a dict with average/max cpu and max ram utilization durint the benchmark
+    '''
+    cstats = f'{statsDir}/cpu.stats'
+    mstats = f'{statsDir}/mem.stats'
+    dfcpu,cpus = load_stats(cstats)
+    cpustats,cpu_all_Max,cpu_all_Average = process_cpustats(dfcpu)
+    dfmem, _ = load_stats(mstats)
+    memstats,max_ram = process_memstats(dfmem)
+    sysstat = {
+        'cpu_all_Average': cpu_all_Average,
+        'cpu_all_Max'    : cpu_all_Max,
+        'cpu_count'      : cpus,
+        'max_ram'        : f'{max_ram}Gb'
+    }
+    
+    return cpustats, memstats, sysstat
+
+def write_test_post_data_new(engine, grafana_url, test_id, table, sysstat):
+    cpu_all_Average = sysstat["cpu_all_Average"]
+    cpu_all_Max     = sysstat["cpu_all_Max"]
+    cpu_count       = sysstat["cpu_count"]
+    max_ram         = sysstat["max_ram"]
+    sys_stats       = f"{grafana_url}{test_id}"
+    
+    sql=( 
+        f"UPDATE {table}\n"
+        f'SET "cpu_all_Average" = {cpu_all_Average},\n'
+        f'"cpu_all_Max" = {cpu_all_Max},\n'
+        f'"cpu_count" = {cpu_count},\n'
+        f"max_ram = '{max_ram}',\n"
+        f"sys_stats = '{sys_stats}'\n"
+        f"WHERE test_id='{test_id}';"
+    )
+    
+    print(sql)
+    
+    with engine.begin() as conn:
+        conn.execute(text(sql))
+
+def write_mem_time_new(engine, mem_statistics, test_id, dummy=False):
+    '''
+    adds mem stats df as time series data to table testresults_memtime
+    '''
+    table = 'testresults_memtime'
+    mem_statistics['dummy'] = mem_statistics['timestamp'].apply(lambda x: f'{dummy}')
+    mem_statistics['test_id'] = mem_statistics['timestamp'].apply(lambda x: f'{test_id}')
+    mem_statistics.to_sql(table,engine,if_exists='append',index=False)
+
+def write_cpuall_time_new(engine, cpu_statistics, test_id, dummy=False):
+    '''
+    adds cpu stats df as time series data to table testresults_cpualltime
+    '''
+    table = 'testresults_cpualltime'
+    cpu_statistics['dummy'] = cpu_statistics['timestamp'].apply(lambda x: f'{dummy}')
+    cpu_statistics['test_id'] = cpu_statistics['timestamp'].apply(lambda x: f'{test_id}')
+    cpu_statistics.to_sql(table,engine,if_exists='append',index=False)
+
+def process_cpustats(statsdf):
+    '''
+    accepts cpu stats raw data from csv and returns a dataframe for further processing
+    '''
+    statsdf = statsdf[['timestamp', '%idle']]
+    statsdf['%idle']   = pd.to_numeric(statsdf['%idle'])
+    statsdf['utilizationall'] = statsdf['%idle'].apply(lambda x:round(float(100) - x, 2 ))
+    statsdf = statsdf[['timestamp','utilizationall']]
+    cpu_all_Max = statsdf['utilizationall'].max()
+    cpu_all_Average = statsdf['utilizationall'].mean()
+    return statsdf, cpu_all_Max,cpu_all_Average
+
+
+def process_memstats(df):
+    '''
+    accepts ram stats raw data  and returns a dataframe for further processing
+    '''
+    statsdf = df[['timestamp', 'kbmemused']]
+    statsdf['kbmemused']   = pd.to_numeric(statsdf['kbmemused'])
+    statsdf['utilizationgb']   = statsdf['kbmemused'].apply(lambda x: round(x/float(1000000),2))
+    statsdf = statsdf[['timestamp','utilizationgb']]
+    max_ram = statsdf['utilizationgb'].max()
+    return statsdf, max_ram
