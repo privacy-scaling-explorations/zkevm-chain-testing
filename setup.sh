@@ -33,7 +33,7 @@ for i in `find $wdir/go-client -mindepth 1 -maxdepth 1 -type d -exec basename {}
 done
 
 docker exec --workdir /Code/go-client gotest go mod tidy
-docker exec --workdir /Code/go-client gotest go build .
+docker exec --workdir /Code/go-client gotest go build -buildvcs=false .
 docker rm -f gotest
 
 sudo chown -R $user:$user $wdir/*
