@@ -1,4 +1,4 @@
-from brownie import CheckSdiv,CheckMload, CheckKeccak
+from brownie import CheckSdiv,CheckMload, CheckKeccak, CheckExtCodeSize
 from brownie.network import accounts
 from web3 import Web3
 from pathlib import Path
@@ -13,11 +13,12 @@ deploymentsDir = projectDir.joinpath(f'brownie/{env["deployments"]}')
 
 def main():
     keyfiles = [i for i in os.listdir(keyfilesDir) if "UTC" in i]
-    print(keyfiles)
-    print(f"{keyfilesDir}{keyfiles[0]}")
+    # print(keyfiles)
+    # print(f"{keyfilesDir}{keyfiles[0]}")
     accounts.load(f"{keyfilesDir}/{keyfiles[0]}", "password")
     owner = accounts[0]
   
     checksdiv = CheckSdiv.deploy({"from": owner})
     checkmload = CheckMload.deploy({"from": owner})
     checksha3 = CheckKeccak.deploy({"from": owner})
+    checkextcodesize = CheckExtCodeSize.deploy({"from": owner,"gas_limit": 300000})
