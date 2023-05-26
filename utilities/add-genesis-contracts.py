@@ -1,6 +1,7 @@
 import json
 from pathlib import Path    
 import sys
+from pprint import pprint
 
 genesis_contracts_dir = sys.argv[2]
 chain_dir = sys.argv[1]
@@ -18,6 +19,8 @@ l2_genesis['alloc'][address] = {
         'balance': '0',
         'code': bytecode
     }
+pprint(l2_genesis['alloc'][address])
+
 #ADD TARGET CONTRACTS FOR BC LENGTH CALCULATIONS
 TARGET_CONTRACTS=1000
 SAMPLE_BC = l2_genesis['alloc'][f'{SAMPLE_ADDRESS_INT:040d}']['code']
