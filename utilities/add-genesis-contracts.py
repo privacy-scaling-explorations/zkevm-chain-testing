@@ -16,7 +16,7 @@ address = f'0x{EXTCODESIZE_ADDRESS_INT:040d}'
 l2_genesis['alloc'][address] = {
         'comment': 'EXTCODESIZE FOR BYTECODE/KECCAK WC BLOCK',
         'balance': '0',
-        'code': bytecode
+        'code': f'0x{bytecode}'
     }
 #ADD TARGET CONTRACTS FOR BC LENGTH CALCULATIONS
 TARGET_CONTRACTS=1000
