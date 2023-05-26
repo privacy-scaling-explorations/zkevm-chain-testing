@@ -14,7 +14,7 @@ contract = json.load(open(f'{genesis_contracts_dir}/EXTCODESIZE_BYTECODE.json'))
 bytecode = f'0x{contract["object"]}'
 address = f'0x{EXTCODESIZE_ADDRESS_INT:040d}'
 l2_genesis['alloc'][address] = {
-        'comment': 'EXTCODESIZE FOR BYTECODE/KECCAK WC BLOCK',
+        'comment': 'TEST EXTCODESIZE FOR BYTECODE/KECCAK WC BLOCK',
         'balance': '0',
         'code': bytecode
     }
