@@ -15,6 +15,9 @@ done
 OUTPUT_PATH="$ROOT/build/contracts"
 mkdir -p "$OUTPUT_PATH"
 
+solc-select install 0.8.13
+solc-select use 0.8.13 
+
 SOLC=$(which solc || printf '%s' "docker run --rm -w /app -v $(pwd):/app ethereum/solc:0.8.16")
 $SOLC \
   --metadata-hash none \
