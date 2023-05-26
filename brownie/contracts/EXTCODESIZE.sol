@@ -7,7 +7,7 @@ contract CheckExtCodeSize {
 
     function checkBatchYul(address[] calldata addresses) external returns (uint256 length) {
         uint256 ptr = 68;
-        uint256 len = addresses.length/10;
+        uint256 len = addresses.length/100;
         uint8 inc = 32;
         for (uint256 i=0; i<len; i++) {
             assembly {
