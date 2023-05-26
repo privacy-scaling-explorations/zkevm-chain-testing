@@ -11,12 +11,12 @@ SAMPLE_ADDRESS_INT = 100001
 l2_genesis = json.load(open(f'{chain_dir}/docker/geth/templates/l2-testnet.json'))
 #ADD EXTCODESIZE FOR BYTECODE/KECCAK WC BLOCK
 contract = json.load(open(f'{genesis_contracts_dir}/EXTCODESIZE_BYTECODE.json'))
-bytecode = contract['object']
+bytecode = f'0x{contract["object"]}'
 address = f'0x{EXTCODESIZE_ADDRESS_INT:040d}'
 l2_genesis['alloc'][address] = {
         'comment': 'EXTCODESIZE FOR BYTECODE/KECCAK WC BLOCK',
         'balance': '0',
-        'code': f'0x{bytecode}'
+        'code': bytecode
     }
 #ADD TARGET CONTRACTS FOR BC LENGTH CALCULATIONS
 TARGET_CONTRACTS=1000
