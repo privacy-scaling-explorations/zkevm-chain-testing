@@ -2,7 +2,7 @@
  
 pragma solidity =0.8.19;
  
-contract CheckExtCodeSize {
+contract CheckExtCodeSize100 {
     // event TestEvent(address addr);
 
     function checkBatchYul(address[] calldata addresses) external returns (uint256 length) {
@@ -209,7 +209,8 @@ contract CheckExtCodeSize {
                 ptr := add(ptr, inc)
                 length := extcodesize(calldataload(ptr))
                 ptr := add(ptr, inc)
-                length := extcodesize(calldataload(ptr))                                                                                                                               
+                length := extcodesize(calldataload(ptr))       
+                ptr := add(ptr, inc)                                                                                                                        
             }
         }
         return length;
