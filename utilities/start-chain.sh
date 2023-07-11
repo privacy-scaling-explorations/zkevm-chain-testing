@@ -6,11 +6,14 @@ cwd=$(pwd)
 d=$(date +"%Y%m%d")
 ln -sfn ./chain/$d zkevm-chain
 git clone https://github.com/appliedzkp/zkevm-chain.git ./chain/$d
+git clone https://github.com/privacy-scaling-explorations/zkevm-chain-testing.git ~
 
 /usr/bin/python3 add-test-accounts.py $cwd/test_accounts.json $cwd/chain/$d/docker/geth/templates/l1-testnet.json
-echo "$cwd/chain/$d/docker/geth/templates/"
-mv l1-testnet.json $cwd/chain/$d/docker/geth/templates/
+/usr/bin/python3 add-genesis-contracts.py $cwd/chain/$d ~/zkevm-chain-testing/brownie/precompiles/
 
+echo "$cwd/chain/$d/docker/geth/templates/" 
+mv l1-testnet.json $cwd/chain/$d/docker/geth/templates/
+mv l2-testnet.json $cwd/chain/$d/docker/geth/templates/
 cd zkevm-chain
 
 mv .env.example .env

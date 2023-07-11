@@ -11,6 +11,8 @@ CHAIN_ID_L2=$2
 IP_ADDRESS=$3
 CHAIN_ID_L1=$4
 
+rm -rf ~/zkevm-chain
+
 if [ ! $WORKING_DIR_NAME = "brownie" ]; then
     echo "Run this script from the brownie directory"
     exit 1
@@ -25,6 +27,7 @@ install_pkgs() {
     sudo apt-get update
     sudo apt-get install jq python3.10-venv python3-pip -y 
     python3 -m pip install --user pipx
+    python3 -m pip install solc-select
     python3 -m pipx ensurepath
 }
 

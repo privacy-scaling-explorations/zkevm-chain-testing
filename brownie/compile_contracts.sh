@@ -15,9 +15,13 @@ done
 OUTPUT_PATH="$ROOT/build/contracts"
 mkdir -p "$OUTPUT_PATH"
 
-SOLC=$(which solc || printf '%s' "docker run --rm -w /app -v $(pwd):/app ethereum/solc:0.8.16")
+solc-select install 0.8.13
+solc-select use 0.8.13 
+
+#SOLC=$(which solc || printf '%s' "docker run --rm -w /app -v $(pwd):/app ethereum/solc:0.8.16")
+SOLC=/home/ubuntu/.local/bin/solc
 $SOLC \
-  --metadata-hash none \
+--metadata-hash none \
   --combined-json bin,bin-runtime,srcmap,srcmap-runtime,storage-layout \
   --optimize \
   --optimize-runs 4294967295 \
